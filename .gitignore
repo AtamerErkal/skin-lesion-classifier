@@ -1,0 +1,17 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# Data Files - IGNORE THE ENTIRE DATA FOLDER
+data/
+
+# MLflow tracking data
+mlruns/
+
+# Evaluation artifacts
+test_results_for_powerbi.csv
+
+# IDE specific
+.vscode/
+.idea/

@@ -1,0 +1,20 @@
+# PyTorch for NVIDIA GPU (CUDA 12.1)
+--extra-index-url https://download.pytorch.org/whl/cu121
+torch
+torchvision
+torchaudio
+
+# MLOps and Data Handling
+mlflow
+pandas
+scikit-learn
+
+# Visualization and App
+streamlit
+matplotlib
+opencv-python-headless
+Pillow
+seaborn
+
+# Explainable AI (XAI)
+grad-cam
