@@ -16,8 +16,7 @@ matplotlib
 opencv-python-headless
 Pillow
 seaborn
+plotly
 
 # Explainable AI (XAI)
 grad-cam
-
-
