@@ -4,6 +4,8 @@ torch
 torchvision
 torchaudio
 opencv-python-headless
+fpdf
+numpy>=1.26.4
 
 # MLOps and Data Handling
 mlflow
