@@ -138,6 +138,13 @@ def load_model():
         """)
         return None
 
+# Helper function to find the last Conv2d layer for Grad-CAM in EfficientNet models
+def find_last_conv_layer(model):
+    for name, module in reversed(list(model.named_modules())):
+        if isinstance(module, torch.nn.Conv2d):
+            return module
+    return None
+
 # --- 3. Enhanced Functions ---
 def optimize_confidence_threshold(probabilities, predicted_class_short):
     """Adjust confidence thresholds based on medical risk levels."""
@@ -173,7 +180,7 @@ def optimize_confidence_threshold(probabilities, predicted_class_short):
     }
 
 def generate_medical_recommendations(predicted_class_short, confidence_info):
-    """Generate medical recommendations based on predicted class and confidence."""
+    """Generate medical recommendations."""
     recommendations = {
         'mel': {
             'high': "🚨 URGENT: Immediate dermatologist consultation required. This appears to be melanoma.",
@@ -220,9 +227,13 @@ def preprocess_image(image):
     return transform(image).unsqueeze(0).to(device)
 
 def generate_gradcam(model, input_tensor, target_class_idx, original_image):
-    """Generate Grad-CAM visualization to highlight model focus areas, avoiding NumPy 2.0 deprecation issues."""
+    """Generate Grad-CAM visualization to highlight model focus areas, fixed for EfficientNet-B7."""
     try:
-        target_layer = model.features[-1]
+        # For EfficientNet-B7, target the last Conv2d layer dynamically
+        target_layer = find_last_conv_layer(model)
+        if target_layer is None:
+            raise ValueError("No Conv2d layer found for Grad-CAM.")
+        
         gradients = []
         feature_maps = []
         
@@ -242,21 +253,20 @@ def generate_gradcam(model, input_tensor, target_class_idx, original_image):
         one_hot[0, target_class_idx] = 1
         outputs.backward(gradient=one_hot, retain_graph=True)
         
-        guided_gradients = gradients[0].cpu().numpy()
-        target_feature_map = feature_maps[0].cpu().numpy()
+        guided_gradients = gradients[0].cpu().data.numpy()[0]
+        target_feature_map = feature_maps[0].cpu().data.numpy()[0]
         
         weights = np.mean(guided_gradients, axis=(1, 2))
         cam = np.zeros(target_feature_map.shape[1:], dtype=np.float32)
         for i, w in enumerate(weights):
-            cam += w * target_feature_map[0, i, :, :]  # Use indexing to avoid array wrapping issues
+            cam += w * target_feature_map[i, :, :]
         
         cam = np.maximum(cam, 0)
         if np.max(cam) > 0:
             cam -= np.min(cam)
             cam /= np.max(cam)
         
-        # Use np.asarray to avoid __array_wrap__ issues
-        original_np = np.asarray(original_image)
+        original_np = np.array(original_image)
         original_height, original_width = original_np.shape[:2]
         cam_resized = cv2.resize(cam, (original_width, original_height))
         
@@ -275,8 +285,7 @@ def generate_gradcam(model, input_tensor, target_class_idx, original_image):
         return visualization
         
     except Exception as e:
-        # Fallback visualization in case of error
-        original_np = np.asarray(original_image)
+        original_np = np.array(original_image)
         overlay = np.zeros_like(original_np)
         if len(original_np.shape) == 3:
             overlay[:, :, 0] = 30
@@ -522,7 +531,7 @@ if model is not None:
 
     if uploaded_file is not None:
         try:
-            # Read bytes from uploaded file and open as image to fix BytesIO error
+            # Read bytes from uploaded file and open as image
             image_bytes = uploaded_file.read()
             if not image_bytes:
                 raise ValueError("Uploaded file is empty or invalid.")
@@ -623,7 +632,6 @@ if model is not None:
             st.markdown("### 🏥 Medical Recommendations")
             recommendation = generate_medical_recommendations(predicted_class_short, confidence_info)
             
-            # Display recommendation based on risk level
             if 'URGENT' in recommendation or 'CRITICAL' in recommendation:
                 st.error(recommendation)
             elif 'HIGH PRIORITY' in recommendation or 'ATTENTION' in recommendation:
@@ -635,7 +643,6 @@ if model is not None:
 
             st.markdown("### 📊 Detailed Analysis Dashboard")
             
-            # Create tabs for detailed analysis
             tab1, tab2, tab3, tab4, tab5 = st.tabs([
                 "📈 All Predictions", 
                 "🎯 Confidence Analysis", 
@@ -647,7 +654,6 @@ if model is not None:
             with tab1:
                 st.markdown("#### 🎯 Complete Prediction Breakdown")
                 
-                # Create DataFrame for prediction probabilities
                 prob_df = pd.DataFrame({
                     'Lesion Type': [lesion_type_dict[idx_to_class[i]] for i in range(len(probabilities))],
                     'Probability': [p.item() for p in probabilities],
@@ -659,7 +665,6 @@ if model is not None:
                 
                 prob_df_sorted = prob_df.sort_values(by='Probability', ascending=False)
                 
-                # Plot prediction probabilities
                 fig_prob = go.Figure()
                 
                 risk_colors = {
@@ -722,7 +727,6 @@ if model is not None:
             with tab2:
                 st.markdown("#### 🎯 Confidence Analysis Dashboard")
                 
-                # Display confidence metrics
                 col1, col2, col3, col4 = st.columns(4)
                 
                 with col1:
@@ -755,7 +759,6 @@ if model is not None:
                 
                 st.markdown("#### 📊 Confidence Distribution Analysis")
                 
-                # Create confidence distribution plots
                 high_conf_indices = [i for i, p in enumerate(probabilities) if p > 0.7]
                 medium_conf_indices = [i for i, p in enumerate(probabilities) if 0.3 < p <= 0.7]  
                 low_conf_indices = [i for i, p in enumerate(probabilities) if p <= 0.3]
@@ -794,7 +797,6 @@ if model is not None:
             with tab3:
                 st.markdown("#### 🔬 Medical Performance Metrics")
                 
-                # Display malignant detection metrics
                 malignant_metrics = calculate_malignant_risk_metrics()
                 
                 col1, col2 = st.columns(2)
@@ -811,7 +813,6 @@ if model is not None:
                 
                 st.markdown("#### 📈 Per-Class Performance Analysis")
                 
-                # Plot per-class performance metrics
                 class_performance = {
                     'Lesion Type': list(lesion_type_dict.values()),
                     'Precision': [0.92, 0.75, 0.88, 0.79, 0.74, 0.85, 0.91],
@@ -865,7 +866,6 @@ if model is not None:
                 st.markdown("**Enhanced EfficientNet-B7 Clinical Assessment**")
                 st.markdown("---")
                 
-                # Display primary analysis results and technical specs
                 col1, col2 = st.columns(2)
                 
                 with col1:
@@ -894,7 +894,6 @@ if model is not None:
                 
                 st.markdown("#### 🎯 Top 3 Differential Diagnoses")
                 
-                # Display top 3 predictions
                 col1, col2, col3 = st.columns(3)
                 for i, (_, row) in enumerate(prob_df_sorted.head(3).iterrows()):
                     with [col1, col2, col3][i]:
@@ -908,7 +907,6 @@ if model is not None:
                 
                 st.info(f"**Report Generated:** {current_time} | **Model Version:** EfficientNet-B7-HAM10k-v2.1")
                 
-                # Generate downloadable report (PDF and JSON)
                 if st.button("📥 Generate Downloadable Report", type="primary"):
                     # Prepare report data
                     report_data = {
@@ -1006,7 +1004,6 @@ if model is not None:
                 
                 st.markdown("##### 🏗️ Model Architecture Details")
                 
-                # Display model architecture and training details
                 col1, col2 = st.columns(2)
                 with col1:
                     st.markdown("""
@@ -1044,7 +1041,6 @@ if model is not None:
                 - Multiple attention areas may suggest complex diagnostic features
                 """)
                 
-            # Interpretation guide
             with st.expander("🤔 How to Interpret These Results - Medical Guide", expanded=False):
                 st.markdown("### 🎯 Comprehensive Interpretation Guide")
                 
@@ -1070,7 +1066,7 @@ if model is not None:
 
         except Exception as e:
             st.error(f"❌ Error processing image: {str(e)}")
-            st.info("💡 Try uploading a different image (JPG, JPEG, or PNG) or check if the file is corrupted.")
+            st.info("💡 Try uploading a different image or check if the file is corrupted.")
 
 else:
     st.error("""
