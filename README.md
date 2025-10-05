@@ -203,7 +203,7 @@ The application will launch at `http://localhost:8501`
 
 ### 🌐 Live Demo
 
-Try the deployed application: [**AI Skin Lesion Analyzer**](YOUR_STREAMLIT_CLOUD_LINK)
+Try the deployed application: [**AI Skin Lesion Analyzer**](https://skinxai.streamlit.app/)
 
 ### Quick Start Guide
 
