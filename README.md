@@ -576,6 +576,22 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Version**: EfficientNet-B7-Enhanced-v2.1 | **Status**: Production | **License**: MIT (Educational Use)
 
 ---
+## 🤖 Development Notes
+
+This project was developed with assistance from AI tools (Claude/ChatGPT) for:
+- Code structure and architecture design
+- Implementation of specific features
+- Documentation and README creation
+
+**My contributions include:**
+- Project concept and requirements definition
+- Model training and hyperparameter tuning
+- Dataset selection and preprocessing strategy
+- Integration and deployment decisions
+- Testing, debugging, and performance optimization
+- Medical research and domain knowledge integration
+
+---
 
 ### 📖 Citation
 
