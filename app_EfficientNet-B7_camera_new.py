@@ -93,6 +93,8 @@ st.markdown("""
 # --- 2. Configuration and Model Loading ---
 # Set device to CUDA if available, else CPU
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+MODEL_URL = "https://drive.google.com/uc?export=download&id=1AjXUGD7uYFQbEOZZ7BXMRmtbMDKrYSGe"
 MODEL_PATH = "model_new_run.pth"
 
 # Skin lesion class definitions
@@ -107,36 +109,44 @@ lesion_type_dict = {
 }
 idx_to_class = {i: cls for i, cls in enumerate(lesion_type_dict.keys())}
 
+
 @st.cache_resource
 def load_model():
-    """Load the PyTorch model from file, cached for performance."""
+    """Download and load the PyTorch model from Google Drive (cached)."""
+    # 1️⃣ Eğer model dosyası yoksa, Google Drive'dan indir
     if not os.path.exists(MODEL_PATH):
-        st.error(f"""
-        🚨 **Model file not found!**
-        
-        The model file `{MODEL_PATH}` is missing from your repository.
-        
-        **To fix this:**
-        1. Make sure `best_model.pth` is in your GitHub repository root
-        2. If the file is too large (>100MB), use Git LFS
-        3. Push to GitHub and redeploy
-        """)
-        return None
-    
+        with st.spinner("📥 Downloading model from Google Drive..."):
+            try:
+                response = requests.get(MODEL_URL, allow_redirects=True)
+                if response.status_code == 200:
+                    with open(MODEL_PATH, "wb") as f:
+                        f.write(response.content)
+                    st.success("✅ Model downloaded successfully!")
+                else:
+                    st.error(f"🚨 Failed to download model (status {response.status_code}).")
+                    return None
+            except Exception as e:
+                st.error(f"🚨 **Error while downloading model:**\n```\n{str(e)}\n```")
+                return None
+
+    # 2️⃣ Model dosyasını yükle
     try:
-        with st.spinner("🤖 Loading Enhanced AI model... Please wait."):
+        with st.spinner("🤖 Loading AI model... Please wait."):
             model = torch.load(MODEL_PATH, map_location=device, weights_only=False)
             model.eval()
-        st.success("✅ Enhanced EfficientNet-B7 Model loaded successfully!")
+        st.success("✅ Model loaded successfully and ready for inference!")
         return model
     except Exception as e:
-        st.error(f"""
-        🚨 **Error loading model:**
-        ```
-        {str(e)}
-        ```
-        """)
+        st.error(f"🚨 **Error loading model:**\n```\n{str(e)}\n```")
         return None
+
+
+# Helper function to find the last Conv2d layer for Grad-CAM in EfficientNet models
+def find_last_conv_layer(model):
+    for name, module in reversed(list(model.named_modules())):
+        if isinstance(module, torch.nn.Conv2d):
+            return module
+    return None
 
 # Helper function to find the last Conv2d layer for Grad-CAM in EfficientNet models
 def find_last_conv_layer(model):
