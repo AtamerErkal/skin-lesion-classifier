@@ -114,7 +114,7 @@ idx_to_class = {i: cls for i, cls in enumerate(lesion_type_dict.keys())}
 @st.cache_resource
 def load_model():
     """Download and load the PyTorch model from Google Drive (cached)."""
-    # 1️⃣ Eğer model dosyası yoksa, Google Drive'dan indir
+    # 1️⃣ if no model file, download from Google Drive
     if not os.path.exists(MODEL_PATH):
         with st.spinner("📥 Downloading model from Google Drive..."):
             try:
@@ -130,7 +130,7 @@ def load_model():
                 st.error(f"🚨 **Error while downloading model:**\n```\n{str(e)}\n```")
                 return None
 
-    # 2️⃣ Model dosyasını yükle
+    # 2️⃣ load model file
     try:
         with st.spinner("🤖 Loading AI model... Please wait."):
             model = torch.load(MODEL_PATH, map_location=device, weights_only=False)
