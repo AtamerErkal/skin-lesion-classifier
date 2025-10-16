@@ -113,7 +113,6 @@ idx_to_class = {i: cls for i, cls in enumerate(lesion_type_dict.keys())}
 
 
 @st.cache_resource
-@st.cache_resource
 def load_model():
     if not os.path.exists(MODEL_PATH):
         with st.spinner("📥 Downloading model from Google Drive..."):
@@ -123,9 +122,11 @@ def load_model():
             except Exception as e:
                 st.error(f"🚨 Error downloading model:\n```\n{str(e)}\n```")
                 return None
+
     try:
         with st.spinner("🤖 Loading AI model... Please wait."):
-            model = torch.load(MODEL_PATH, map_location=device)
+            # PyTorch 2.6+ requires weights_only=False to load full model objects
+            model = torch.load(MODEL_PATH, map_location=device, weights_only=False)
             model.eval()
         st.success("✅ Model loaded successfully and ready for inference!")
         return model
