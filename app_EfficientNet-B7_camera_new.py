@@ -96,7 +96,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Google Drive model configuration
 MODEL_URL = "https://drive.google.com/uc?export=download&id=1vg_SQzGUtvbg2XVlzs_kuAodMz4PWi9T"
-MODEL_PATH = "model_new_run.pth"
+MODEL_PATH = "model_new_run_drive.pth"
 
 # Skin lesion class definitions
 lesion_type_dict = {
@@ -110,7 +110,7 @@ lesion_type_dict = {
 }
 idx_to_class = {i: cls for i, cls in enumerate(lesion_type_dict.keys())}
 
-@st.cache_resource
+#@st.cache_resource
 def load_model():
     """Load the PyTorch model from file or download from Google Drive."""
     # Download model if not exists
