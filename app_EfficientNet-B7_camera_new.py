@@ -96,7 +96,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Google Drive model configuration
 MODEL_URL = "https://drive.google.com/uc?export=download&id=1vg_SQzGUtvbg2XVlzs_kuAodMz4PWi9T"
-MODEL_PATH = "best_model.pth"
+MODEL_PATH = "model_new_run.pth"
 
 # Skin lesion class definitions
 lesion_type_dict = {
