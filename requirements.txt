@@ -6,6 +6,7 @@ torchaudio
 opencv-python-headless
 fpdf
 numpy>=1.26.4
+request
 
 # MLOps and Data Handling
 mlflow
@@ -22,3 +23,4 @@ plotly
 
 # Explainable AI (XAI)
 grad-cam
+
