@@ -1,4 +1,5 @@
 import streamlit as st
+import gdown
 import torch
 from torchvision import transforms
 from PIL import Image
@@ -112,23 +113,25 @@ idx_to_class = {i: cls for i, cls in enumerate(lesion_type_dict.keys())}
 
 
 @st.cache_resource
+@st.cache_resource
 def load_model():
-    """Download and load the PyTorch model from Google Drive (cached)."""
-    # 1️⃣ if no model file, download from Google Drive
     if not os.path.exists(MODEL_PATH):
         with st.spinner("📥 Downloading model from Google Drive..."):
             try:
-                response = requests.get(MODEL_URL, allow_redirects=True)
-                if response.status_code == 200:
-                    with open(MODEL_PATH, "wb") as f:
-                        f.write(response.content)
-                    st.success("✅ Model downloaded successfully!")
-                else:
-                    st.error(f"🚨 Failed to download model (status {response.status_code}).")
-                    return None
+                gdown.download(id="1AjXUGD7uYFQbEOZZ7BXMRmtbMDKrYSGe", output=MODEL_PATH, quiet=False)
+                st.success("✅ Model downloaded successfully!")
             except Exception as e:
-                st.error(f"🚨 **Error while downloading model:**\n```\n{str(e)}\n```")
+                st.error(f"🚨 Error downloading model:\n```\n{str(e)}\n```")
                 return None
+    try:
+        with st.spinner("🤖 Loading AI model... Please wait."):
+            model = torch.load(MODEL_PATH, map_location=device)
+            model.eval()
+        st.success("✅ Model loaded successfully and ready for inference!")
+        return model
+    except Exception as e:
+        st.error(f"🚨 Error loading model:\n```\n{str(e)}\n```")
+        return None
 
     # 2️⃣ load model file
     try:
