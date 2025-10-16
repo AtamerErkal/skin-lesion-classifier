@@ -13,6 +13,7 @@ from sklearn.metrics import classification_report, confusion_matrix, roc_auc_sco
 import io  # For in-memory file handling
 import json  # For JSON export
 from fpdf import FPDF  # For PDF generation (add to requirements.txt: fpdf)
+import requests
 
 # Safely import OpenCV
 try:
