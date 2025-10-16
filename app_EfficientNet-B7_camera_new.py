@@ -110,7 +110,7 @@ lesion_type_dict = {
 }
 idx_to_class = {i: cls for i, cls in enumerate(lesion_type_dict.keys())}
 
-#@st.cache_resource
+@st.cache_resource
 def load_model():
     """Load the PyTorch model from file or download from Google Drive."""
     # Download model if not exists
