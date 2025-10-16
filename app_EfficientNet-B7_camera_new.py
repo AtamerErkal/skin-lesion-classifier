@@ -1,5 +1,4 @@
 import streamlit as st
-import gdown
 import torch
 from torchvision import transforms
 from PIL import Image
@@ -14,7 +13,6 @@ from sklearn.metrics import classification_report, confusion_matrix, roc_auc_sco
 import io  # For in-memory file handling
 import json  # For JSON export
 from fpdf import FPDF  # For PDF generation (add to requirements.txt: fpdf)
-import requests
 
 # Safely import OpenCV
 try:
@@ -96,8 +94,9 @@ st.markdown("""
 # Set device to CUDA if available, else CPU
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-MODEL_URL = "https://drive.google.com/uc?export=download&id=1AjXUGD7uYFQbEOZZ7BXMRmtbMDKrYSGe"
-MODEL_PATH = "model_new_run.pth"
+# Google Drive model configuration
+MODEL_URL = "https://drive.google.com/uc?export=download&id=1vg_SQzGUtvbg2XVlzs_kuAodMz4PWi9T"
+MODEL_PATH = "best_model.pth"
 
 # Skin lesion class definitions
 lesion_type_dict = {
@@ -111,47 +110,65 @@ lesion_type_dict = {
 }
 idx_to_class = {i: cls for i, cls in enumerate(lesion_type_dict.keys())}
 
-
 @st.cache_resource
 def load_model():
+    """Load the PyTorch model from file or download from Google Drive."""
+    # Download model if not exists
     if not os.path.exists(MODEL_PATH):
-        with st.spinner("📥 Downloading model from Google Drive..."):
+        with st.spinner("📥 Downloading model from Google Drive... This may take a few minutes."):
             try:
-                gdown.download(id="1AjXUGD7uYFQbEOZZ7BXMRmtbMDKrYSGe", output=MODEL_PATH, quiet=False)
+                import gdown
+                gdown.download(id="1vg_SQzGUtvbg2XVlzs_kuAodMz4PWi9T", output=MODEL_PATH, quiet=False)
                 st.success("✅ Model downloaded successfully!")
             except Exception as e:
-                st.error(f"🚨 Error downloading model:\n```\n{str(e)}\n```")
+                st.error(f"""
+                🚨 **Error downloading model from Google Drive:**
+                ```
+                {str(e)}
+                ```
+                
+                **Please ensure:**
+                - You have internet connection
+                - The Google Drive link is publicly accessible
+                - gdown is installed: `pip install gdown`
+                """)
                 return None
-
+    
     try:
-        with st.spinner("🤖 Loading AI model... Please wait."):
-            # PyTorch 2.6+ requires weights_only=False to load full model objects
+        # Check if file is valid (not HTML error page)
+        with open(MODEL_PATH, 'rb') as f:
+            header = f.read(10)
+            if header.startswith(b'<!DOCTYPE') or header.startswith(b'<html'):
+                st.error("🚨 Model file appears to be an HTML page. Deleting and re-downloading...")
+                os.remove(MODEL_PATH)
+                return load_model()  # Retry download
+        
+        with st.spinner("🤖 Loading Enhanced AI model... Please wait."):
+            # Try to load with weights_only=False for full model objects
             model = torch.load(MODEL_PATH, map_location=device, weights_only=False)
             model.eval()
-        st.success("✅ Model loaded successfully and ready for inference!")
+        st.success("✅ Enhanced EfficientNet-B7 Model loaded successfully!")
         return model
     except Exception as e:
-        st.error(f"🚨 Error loading model:\n```\n{str(e)}\n```")
+        st.error(f"""
+        🚨 **Error loading model:**
+        ```
+        {str(e)}
+        ```
+        
+        **Possible solutions:**
+        - Delete the corrupted `{MODEL_PATH}` file and restart the app
+        - Check that the Google Drive file is the correct PyTorch model
+        - Ensure the model was saved with `torch.save(model, 'best_model.pth')`
+        """)
+        # Try to delete corrupted file
+        if os.path.exists(MODEL_PATH):
+            try:
+                os.remove(MODEL_PATH)
+                st.info("🗑️ Corrupted file deleted. Please refresh the page to re-download.")
+            except:
+                pass
         return None
-
-    # 2️⃣ load model file
-    try:
-        with st.spinner("🤖 Loading AI model... Please wait."):
-            model = torch.load(MODEL_PATH, map_location=device, weights_only=False)
-            model.eval()
-        st.success("✅ Model loaded successfully and ready for inference!")
-        return model
-    except Exception as e:
-        st.error(f"🚨 **Error loading model:**\n```\n{str(e)}\n```")
-        return None
-
-
-# Helper function to find the last Conv2d layer for Grad-CAM in EfficientNet models
-def find_last_conv_layer(model):
-    for name, module in reversed(list(model.named_modules())):
-        if isinstance(module, torch.nn.Conv2d):
-            return module
-    return None
 
 # Helper function to find the last Conv2d layer for Grad-CAM in EfficientNet models
 def find_last_conv_layer(model):
@@ -383,7 +400,7 @@ st.sidebar.markdown("""
             <small>AUC Score</small>
         </div>
     </div>
-    <p style="margin: 5px 0 0 0; text-align: center; font-size: 0.8em;">↗ +12.3% improvement vs baseline</p>
+    <p style="margin: 5px 0 0 0; text-align: center; font-size: 0.8em;">↗️ +12.3% improvement vs baseline</p>
 </div>
 
 <div style="background: linear-gradient(135deg, #27ae60 0%, #229954 100%); 
@@ -1201,7 +1218,7 @@ st.markdown("""
 ### 📞 Support & Resources
 
 **For Technical Support:**
-- 📧     Email: atamererkal.eu@gmail.com
+- 📧 Email: atamererkal.eu@gmail.com
 - 🐛 Issues: [GitHub Repository](https://github.com/AtamerErkal/skin-lesion-classifier)
 
 **Medical Resources:**
