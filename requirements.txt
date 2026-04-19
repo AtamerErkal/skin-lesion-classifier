@@ -3,7 +3,7 @@
 torch
 torchvision
 torchaudio
-opencv-python-headless
+opencv-python-headless==4.9.0.80
 fpdf
 numpy>=1.26.4
 requests
@@ -17,7 +17,6 @@ scikit-learn
 # Visualization and App
 streamlit
 matplotlib
-opencv-python-headless
 Pillow
 seaborn
 plotly
