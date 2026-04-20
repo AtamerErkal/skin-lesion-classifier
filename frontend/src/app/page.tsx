@@ -820,6 +820,7 @@ export default function Home() {
                         ref={videoRef}
                         autoPlay
                         playsInline
+                        muted
                         className="w-full aspect-[4/3] object-cover"
                       />
                       <div className="absolute inset-0 pointer-events-none">
