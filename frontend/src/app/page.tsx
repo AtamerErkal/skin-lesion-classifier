@@ -372,41 +372,6 @@ export default function Home() {
   const startCamera = useCallback(async () => {
     try {
       console.log("Starting camera...");
-      console.log("videoRef.current:", videoRef.current);
-
-      // Simple camera access - try rear first, then front
-      let stream;
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: 'environment',
-            width: { ideal: 1280 },
-            height: { ideal: 720 }
-          }
-        });
-      } catch (rearErr) {
-        console.log("Rear camera not available, trying front camera");
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: 'user',
-            width: { ideal: 1280 },
-            height: { ideal: 720 }
-          }
-        });
-      }
-
-      console.log("Stream obtained:", stream);
-
-      if (!videoRef.current) {
-        console.error("videoRef.current is null!");
-        setError("Camera element not ready. Please try again.");
-        return;
-      }
-
-      videoRef.current.srcObject = stream;
-      videoRef.current.muted = true;
-      await videoRef.current.play();
-      console.log("Video playing, setting showCamera to true");
       setShowCamera(true);
       console.log("showCamera set to true");
     } catch (err) {
@@ -414,6 +379,58 @@ export default function Home() {
       setError("Camera access denied or not available. Please use file upload instead.");
     }
   }, []);
+
+  // Initialize video when showCamera changes
+  useEffect(() => {
+    const initializeVideo = async () => {
+      if (!showCamera) return;
+
+      console.log("Initializing video...");
+      console.log("videoRef.current:", videoRef.current);
+
+      // Wait for video element to be in DOM
+      if (!videoRef.current) {
+        console.log("Waiting for video element...");
+        return;
+      }
+
+      try {
+        // Simple camera access - try rear first, then front
+        let stream;
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              facingMode: 'environment',
+              width: { ideal: 1280 },
+              height: { ideal: 720 }
+            }
+          });
+        } catch (rearErr) {
+          console.log("Rear camera not available, trying front camera");
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              facingMode: 'user',
+              width: { ideal: 1280 },
+              height: { ideal: 720 }
+            }
+          });
+        }
+
+        console.log("Stream obtained:", stream);
+
+        videoRef.current.srcObject = stream;
+        videoRef.current.muted = true;
+        await videoRef.current.play();
+        console.log("Video playing");
+      } catch (err) {
+        console.error("Camera error:", err);
+        setError("Camera access denied or not available. Please use file upload instead.");
+        setShowCamera(false);
+      }
+    };
+
+    initializeVideo();
+  }, [showCamera]);
 
   const stopCamera = useCallback(() => {
     if (videoRef.current && videoRef.current.srcObject) {
