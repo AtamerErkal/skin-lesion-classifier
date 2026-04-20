@@ -371,18 +371,21 @@ export default function Home() {
   // Camera functions
   const startCamera = useCallback(async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
-          facingMode: 'environment',
-          width: { ideal: 1920 },
-          height: { ideal: 1080 }
-        } 
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: 'user', // Front camera
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }
       });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        videoRef.current.muted = true;
+        await videoRef.current.play();
       }
       setShowCamera(true);
     } catch (err) {
+      console.error("Camera error:", err);
       setError("Camera access denied or not available. Please use file upload instead.");
     }
   }, []);
