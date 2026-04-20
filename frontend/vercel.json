@@ -3,11 +3,5 @@
   "outputDirectory": ".next",
   "devCommand": "npm run dev",
   "installCommand": "npm install",
-  "framework": "nextjs",
-  "env": {
-    "NEXT_PUBLIC_API_URL": {
-      "description": "FastAPI backend URL",
-      "value": "https://skinxai-api.onrender.com"
-    }
-  }
+  "framework": "nextjs"
 }
