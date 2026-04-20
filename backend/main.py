@@ -23,6 +23,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Root endpoint for Hugging Face Spaces
+@app.get("/")
+async def root():
+    return {
+        "message": "SkinXAI API",
+        "status": "running",
+        "endpoints": {
+            "health": "/health",
+            "predict": "/predict"
+        }
+    }
+
 # Model configuration
 MODEL_PATH = "./best_model.pth"
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
