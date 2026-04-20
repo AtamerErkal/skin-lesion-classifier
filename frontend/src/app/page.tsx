@@ -371,7 +371,7 @@ export default function Home() {
   // Camera functions
   const startCamera = useCallback(async () => {
     try {
-      // Try rear camera first, fallback to front camera
+      // Simple camera access - try rear first, then front
       let stream;
       try {
         stream = await navigator.mediaDevices.getUserMedia({
@@ -395,19 +395,8 @@ export default function Home() {
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         videoRef.current.muted = true;
-
-        // Wait for video to load before showing
-        videoRef.current.onloadedmetadata = () => {
-          videoRef.current?.play();
-          setShowCamera(true);
-        };
-
-        // Fallback timeout
-        setTimeout(() => {
-          if (!showCamera) {
-            setShowCamera(true);
-          }
-        }, 2000);
+        await videoRef.current.play();
+        setShowCamera(true);
       }
     } catch (err) {
       console.error("Camera error:", err);
