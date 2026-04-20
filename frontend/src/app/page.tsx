@@ -728,14 +728,14 @@ export default function Home() {
                 </div>
               </CardHeader>
               
-              <CardContent className="p-8 relative">
-                {/* Video element - always in DOM, positioned absolutely when showCamera is true */}
+              <CardContent className="p-8">
+                {/* Hidden video element - always in DOM for ref access */}
                 <video
                   ref={videoRef}
                   autoPlay
                   playsInline
                   muted
-                  className={showCamera ? "absolute inset-0 w-full h-full object-cover z-10" : "hidden"}
+                  className="hidden"
                 />
 
                 {!showCamera ? (
@@ -850,6 +850,13 @@ export default function Home() {
                   /* Camera View */
                   <div className="space-y-4">
                     <div className="relative rounded-2xl overflow-hidden bg-black min-h-[300px]">
+                      <video
+                        ref={videoRef}
+                        autoPlay
+                        playsInline
+                        muted
+                        className="w-full h-full object-cover"
+                      />
                       <div className="absolute inset-0 pointer-events-none">
                         <div className="absolute inset-0 border-2 border-white/30 m-8 rounded-2xl" />
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 border-2 border-white/50 rounded-full" />
