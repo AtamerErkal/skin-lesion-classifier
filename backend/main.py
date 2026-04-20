@@ -24,7 +24,7 @@ app.add_middleware(
 )
 
 # Model configuration
-MODEL_PATH = "../best_model.pth"
+MODEL_PATH = "./best_model.pth"
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Class definitions

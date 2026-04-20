@@ -16,14 +16,14 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy model file
-COPY ../best_model.pth /app/model.pth
+# Copy model file (assumes best_model.pth is in the same directory as Dockerfile)
+COPY best_model.pth /app/model.pth
 
 # Copy application code
 COPY main.py .
 
-# Expose port
-EXPOSE 8000
+# Expose port (Hugging Face Spaces uses 7860)
+EXPOSE 7860
 
-# Run the application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run the application on port 7860 for Hugging Face Spaces
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860"]
