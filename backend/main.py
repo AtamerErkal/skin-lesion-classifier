@@ -58,9 +58,36 @@ def load_model():
     if model is None:
         if not os.path.exists(MODEL_PATH):
             raise FileNotFoundError(f"Model file not found at {MODEL_PATH}")
+        
+        # Load model with memory optimization
+        print("Loading model...")
         model = torch.load(MODEL_PATH, map_location=device, weights_only=False)
+        
+        # Apply dynamic quantization to reduce memory usage by ~50%
+        # This converts weights to int8 which uses less memory
+        try:
+            model = torch.quantization.quantize_dynamic(
+                model, {torch.nn.Linear, torch.nn.Conv2d}, dtype=torch.qint8
+            )
+            print("Model quantization applied successfully")
+        except Exception as e:
+            print(f"Quantization warning (continuing without): {e}")
+        
         model.eval()
+        print("Model loaded successfully")
     return model
+
+def unload_model():
+    """Free model from memory after prediction"""
+    global model
+    if model is not None:
+        del model
+        model = None
+        import gc
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+        print("Model unloaded from memory")
 
 # Image preprocessing
 def preprocess_image(image: Image.Image):
@@ -164,10 +191,11 @@ class HealthResponse(BaseModel):
 @app.get("/health", response_model=HealthResponse)
 async def health_check():
     try:
-        load_model()
+        # Only check if model file exists, don't load into memory
+        model_exists = os.path.exists(MODEL_PATH)
         return HealthResponse(
-            status="healthy",
-            model_loaded=True,
+            status="healthy" if model_exists else "unhealthy",
+            model_loaded=model_exists,
             device=str(device)
         )
     except Exception as e:
@@ -246,6 +274,10 @@ async def predict(file: UploadFile = File(...)):
                 grad_cam_image=grad_cam_base64
             )
             print("Response creation successful")
+            
+            # Free memory after prediction (important for Render free tier)
+            unload_model()
+            
             return response
         except Exception as e:
             print(f"Response creation error: {str(e)}")
