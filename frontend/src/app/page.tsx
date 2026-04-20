@@ -746,6 +746,9 @@ export default function Home() {
               </CardHeader>
               
               <CardContent className="p-8">
+                {/* Hidden canvas for camera capture */}
+                <canvas ref={canvasRef} className="hidden" />
+
                 {!showCamera ? (
                   <div className="space-y-6">
                     {/* Preview Area */}
@@ -795,9 +798,6 @@ export default function Home() {
                         </label>
                       </div>
                     )}
-
-                    {/* Hidden canvas for camera capture */}
-                    <canvas ref={canvasRef} className="hidden" />
 
                     {/* Analyze Button */}
                     {file && (
