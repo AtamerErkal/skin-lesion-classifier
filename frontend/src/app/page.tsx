@@ -829,13 +829,13 @@ export default function Home() {
                 ) : (
                   /* Camera View */
                   <div className="space-y-4">
-                    <div className="relative rounded-2xl overflow-hidden bg-black">
+                    <div className="relative rounded-2xl overflow-hidden bg-black min-h-[300px]">
                       <video
                         ref={videoRef}
                         autoPlay
                         playsInline
                         muted
-                        className="w-full aspect-[4/3] object-cover"
+                        className="w-full h-full object-cover"
                       />
                       <div className="absolute inset-0 pointer-events-none">
                         <div className="absolute inset-0 border-2 border-white/30 m-8 rounded-2xl" />
