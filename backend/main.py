@@ -71,20 +71,9 @@ def load_model():
         if not os.path.exists(MODEL_PATH):
             raise FileNotFoundError(f"Model file not found at {MODEL_PATH}")
         
-        # Load model with memory optimization
+        # Load model (no quantization for Grad-CAM compatibility)
         print("Loading model...")
         model = torch.load(MODEL_PATH, map_location=device, weights_only=False)
-        
-        # Apply dynamic quantization to reduce memory usage by ~50%
-        # This converts weights to int8 which uses less memory
-        try:
-            model = torch.quantization.quantize_dynamic(
-                model, {torch.nn.Linear, torch.nn.Conv2d}, dtype=torch.qint8
-            )
-            print("Model quantization applied successfully")
-        except Exception as e:
-            print(f"Quantization warning (continuing without): {e}")
-        
         model.eval()
         print("Model loaded successfully")
     return model
