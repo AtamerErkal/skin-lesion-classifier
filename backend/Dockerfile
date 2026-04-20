@@ -16,8 +16,8 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy model file (assumes best_model.pth is in the same directory as Dockerfile)
-COPY best_model.pth /app/model.pth
+# Copy model file (must match MODEL_PATH in main.py)
+COPY best_model.pth /app/best_model.pth
 
 # Copy application code
 COPY main.py .
