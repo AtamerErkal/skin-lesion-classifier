@@ -7,7 +7,7 @@
   "env": {
     "NEXT_PUBLIC_API_URL": {
       "description": "FastAPI backend URL",
-      "value": "http://localhost:8000"
+      "value": "https://skinxai-api.onrender.com"
     }
   }
 }
