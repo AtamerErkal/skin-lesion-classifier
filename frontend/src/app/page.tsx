@@ -395,9 +395,20 @@ export default function Home() {
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         videoRef.current.muted = true;
-        await videoRef.current.play();
+
+        // Wait for video to load before showing
+        videoRef.current.onloadedmetadata = () => {
+          videoRef.current?.play();
+          setShowCamera(true);
+        };
+
+        // Fallback timeout
+        setTimeout(() => {
+          if (!showCamera) {
+            setShowCamera(true);
+          }
+        }, 2000);
       }
-      setShowCamera(true);
     } catch (err) {
       console.error("Camera error:", err);
       setError("Camera access denied or not available. Please use file upload instead.");
