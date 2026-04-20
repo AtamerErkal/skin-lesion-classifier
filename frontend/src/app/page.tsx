@@ -371,6 +371,7 @@ export default function Home() {
   // Camera functions
   const startCamera = useCallback(async () => {
     try {
+      console.log("Starting camera...");
       // Simple camera access - try rear first, then front
       let stream;
       try {
@@ -396,7 +397,9 @@ export default function Home() {
         videoRef.current.srcObject = stream;
         videoRef.current.muted = true;
         await videoRef.current.play();
+        console.log("Video playing, setting showCamera to true");
         setShowCamera(true);
+        console.log("showCamera set to true");
       }
     } catch (err) {
       console.error("Camera error:", err);
@@ -720,6 +723,7 @@ export default function Home() {
               <CardContent className="p-8">
                 {!showCamera ? (
                   <div className="space-y-6">
+                    {console.log("Rendering upload view, showCamera:", showCamera)}
                     {/* Preview Area */}
                     {preview ? (
                       <div className="relative">
@@ -829,6 +833,7 @@ export default function Home() {
                 ) : (
                   /* Camera View */
                   <div className="space-y-4">
+                    {console.log("Rendering camera view, showCamera:", showCamera)}
                     <div className="relative rounded-2xl overflow-hidden bg-black min-h-[300px]">
                       <video
                         ref={videoRef}
